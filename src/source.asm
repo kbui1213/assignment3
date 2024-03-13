@@ -55,28 +55,30 @@ INCLUDELIB user32.lib
 .code
 
 StackEmpty PROC
+
     mov EAX, ESP
     ADD EAX, DWORD
     CMP variable1, EAX
-    JE EmptyStack
+    JE emptying_here
 
-    NotEmptyStack:
+    other_stack:
         mov EDX, OFFSET notEmpty
         Call WriteString
-        jmp ExitingStackEmpty
-    EmptyStack:
+        jmp if_empty
+    emptying_here:
         mov EDX, OFFSET empty
         Call WriteString
-    ExitingStackEmpty:
+    if_empty:
     ret
+
 StackEmpty ENDP
 
-PrintVector PROC
-    ; Display the vector
-    movzx ECX, N ; Set the loop counter to the size of the vector
-    mov EDI, OFFSET UserVector ; Set EDI to point to the beginning of the vector
+print_values PROC
+    ; 
+    movzx ECX, N ; set loop counter to the length of vector
+    mov EDI, OFFSET UserVector ; EDI point to beginning of the vector
 
-    PrintVectorLoop:
+    Loop_Print:
         ; Display the current element
         mov EAX, [EDI]
         Call WriteDec
@@ -89,12 +91,12 @@ PrintVector PROC
         add EDI, DWORD ; Assuming each element is a double-word (4 bytes)
         
         ; Decrement the loop counter
-        loop PrintVectorLoop
+        loop Loop_Print
 
     ret
-PrintVector ENDP
+print_values ENDP
 
-PrintStack PROC
+stack_valuez PROC
     mov EDI, ESP
     movzx ECX, N
     IterateThroughStack:
@@ -105,7 +107,7 @@ PrintStack PROC
         Call WriteString
         loop IterateThroughStack
     ret
-PrintStack ENDP
+stack_valuez ENDP
 
 main PROC
     
@@ -118,9 +120,9 @@ main PROC
         Call Crlf
 
         CMP EAX, -1
-        JE ExitVal
+        JE Finishing
         CMP EAX, 0
-        JE CreateVector
+        JE make_start
         CMP EAX, 1
         JE VectorToStack
         CMP EAX, 2
@@ -130,7 +132,7 @@ main PROC
 
 
     ; Start of 0
-    CreateVector:
+    make_start:
         mov EDX, OFFSET prompt_two
         Call WriteString
 
@@ -148,11 +150,11 @@ main PROC
         Call Crlf
 
         mov EDI, OFFSET UserVector
-    VectorLoop:
+    loop_vector:
         Call ReadInt
         mov [EDI], EAX
         add EDI, DWORD
-        loop VectorLoop
+        loop loop_vector
         mov EDX, OFFSET promptFifth
         Call WriteString
         movzx EAX, N
@@ -161,7 +163,7 @@ main PROC
         movzx ECX, N
         mov EDX, OFFSET promptSixth
         Call WriteString
-        Call PrintVector
+        Call print_values
         Call Crlf
         Call StackEmpty
         jmp mainLoop
@@ -170,27 +172,27 @@ main PROC
     VectorToStack:
         mov EDX, OFFSET Prompt_7
         Call WriteString
-        Call PrintVector
+        Call print_values
         mov EDX, OFFSET Prompt_8
         Call WriteString
         movzx ECX, N
         mov EDI, OFFSET UserVector
-    VectorToStackLoop:
+    loopVstack:
         push [EDI]
         mov EAX, 0
         mov [EDI], EAX
         add EDI, DWORD 
-        loop VectorToStackLoop
+        loop loopVstack
         Call Crlf
         mov EDX, OFFSET Prompt_9
         Call WriteString
-        Call PrintStack
+        Call stack_valuez
         mov EDX, OFFSET Prompt_10
         Call WriteString
         Call Crlf
         mov EDX, OFFSET Prompt_7
         Call WriteString
-        Call PrintVector
+        Call print_values
         mov EDX, OFFSET Prompt_10
         Call WriteString
         Call Crlf
@@ -201,7 +203,7 @@ main PROC
     StackToVector:
         mov EDX, OFFSET Prompt_13
         Call WriteString
-        Call PrintStack
+        Call stack_valuez
         mov EDX, OFFSET Prompt_12
         Call WriteString
         mov EDI, OFFSET UserVector
@@ -211,14 +213,14 @@ main PROC
         add EDI, EAX
         sub EDI, DWORD
         movzx ECX, N
-    StackToVectorLoop:
+    stack_vector:
         pop EAX
         mov [EDI], EAX
         sub EDI, DWORD
-        loop StackToVectorLoop
+        loop stack_vector
         mov EDX, OFFSET Prompt_11
         Call WriteString
-        Call PrintVector
+        Call print_values
         mov EDX, OFFSET Prompt_14
         Call WriteString
         Call Crlf
@@ -229,7 +231,7 @@ main PROC
     StackReverse:
         mov EDX, OFFSET prompt_15
         Call WriteString
-        Call PrintVector
+        Call print_values
         mov EDX, OFFSET prompt_16
         Call WriteString
 
@@ -242,7 +244,7 @@ main PROC
         add edi, ecx
         sub edi, 4
         
-        StackReverseLoop:
+        loop_R:
             mov eax, [esi]
             xchg eax, [edi]
             mov [esi], eax
@@ -251,22 +253,22 @@ main PROC
             sub edi, 4
             
             cmp esi, edi
-            jae StackReverseExitLoop
+            jae stack_loop_finish
             
-            jmp StackReverseLoop
+            jmp loop_R
         
-        StackReverseExitLoop:
+        stack_loop_finish:
         mov EDX, OFFSET prompt_17
         Call WriteString
-        Call PrintStack
+        Call stack_valuez
         mov EDX, OFFSET prompt_18
         Call WriteString
         Call Crlf
         Call StackEmpty
         jmp mainLoop
-    ; End of 3
-    ; Start of -1
-    ExitVal:
+    ; end of 3 option
+    ; -1 exit option
+    Finishing:
         mov EDX, OFFSET exiting
         Call WriteString
 
