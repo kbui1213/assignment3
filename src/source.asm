@@ -1,6 +1,7 @@
-Assignment 3 Q4
+TITLE Assignment-2
+
 ; Name: Kevin Bui
-; Date: March 13 2024
+; Date: March 13, 2024
 ; ID: 110110133
 ; Description: Assignment 3
 
@@ -14,8 +15,9 @@ INCLUDELIB user32.lib
     MAX = 20 ; Maximum size of the vector
     N BYTE ?
     UserVector DWORD MAX DUP(?)
-    initialAddress DWORD ?
-    currentAddress DWORD ?
+
+    exiting BYTE "I am exiting... Thank you Honey... and Get lost...", 0Ah, 0Dh, 0
+
 
     promptFirst BYTE "what do you want to do now? > ", 0
 
@@ -41,19 +43,21 @@ INCLUDELIB user32.lib
     Prompt_13 BYTE "Stack is ", 0
     Prompt_14 BYTE "after StackToArray", 0Ah, 0Dh, 0
 
-    Prompt_15 BYTE "Vector is ", 0
-    Prompt_16 BYTE "before StackReverse ", 0Ah, 0Dh, 0
-    Prompt_17 BYTE "Stack is ", 0
-    Prompt_18 BYTE "after StackReverse", 0Ah, 0Dh, 0
+    prompt_15 BYTE "Vector is ", 0
+    prompt_16 BYTE "before StackReverse ", 0Ah, 0Dh, 0
+    prompt_17 BYTE "Stack is ", 0
+    prompt_18 BYTE "after StackReverse", 0Ah, 0Dh, 0
 
-    ExitPrompt BYTE "I am exiting... Thank you Honey... and Get lost...", 0Ah, 0Dh, 0
+    variable1 DWORD ?
+    variable2 DWORD ?
+
 
 .code
 
 StackEmpty PROC
     mov EAX, ESP
     ADD EAX, DWORD
-    CMP initialAddress, EAX
+    CMP variable1, EAX
     JE EmptyStack
 
     NotEmptyStack:
@@ -105,7 +109,7 @@ PrintStack ENDP
 
 main PROC
     
-    mov initialAddress, ESP
+    mov variable1, ESP
     mainLoop:
         mov EDX, OFFSET promptFirst
         Call WriteString
@@ -223,10 +227,10 @@ main PROC
     ; End of 2
     ; Start of 3
     StackReverse:
-        mov EDX, OFFSET Prompt_15
+        mov EDX, OFFSET prompt_15
         Call WriteString
         Call PrintVector
-        mov EDX, OFFSET Prompt_16
+        mov EDX, OFFSET prompt_16
         Call WriteString
 
         mov esi, OFFSET UserVector
@@ -252,10 +256,10 @@ main PROC
             jmp StackReverseLoop
         
         StackReverseExitLoop:
-        mov EDX, OFFSET Prompt_17
+        mov EDX, OFFSET prompt_17
         Call WriteString
         Call PrintStack
-        mov EDX, OFFSET Prompt_18
+        mov EDX, OFFSET prompt_18
         Call WriteString
         Call Crlf
         Call StackEmpty
@@ -263,7 +267,7 @@ main PROC
     ; End of 3
     ; Start of -1
     ExitVal:
-        mov EDX, OFFSET ExitPrompt
+        mov EDX, OFFSET exiting
         Call WriteString
 
     exit
