@@ -1,116 +1,272 @@
-TITLE
-
-; Name: 
-; Date: 
-; ID: 
-; Description: 
+Assignment 3 Q4
+; Name: Kevin Bui
+; Date: March 13 2024
+; ID: 110110133
+; Description: Assignment 3
 
 INCLUDE Irvine32.inc
 INCLUDELIB Irvine32.lib
 
-; these two lines are only necessary if you're not using Visual Studio
 INCLUDELIB kernel32.lib
 INCLUDELIB user32.lib
 
 .data
-; Define maximum array size
-N equ 20
+    MAX = 20 ; Maximum size of the vector
+    N BYTE ?
+    UserVector DWORD MAX DUP(?)
+    initialAddress DWORD ?
+    currentAddress DWORD ?
 
-; Array to store data
-Vector dd 20 dup(?)
+    promptFirst BYTE "what do you want to do now? > ", 0
+
+    prompt_two BYTE "What is the size N of Vector? > ", 0
+    promptThird BYTE "What are the ", 0
+    promptFour BYTE " values in Vector? > ", 0
+    promptFifth BYTE "Size of Vector is N = ", 0
+    promptSixth BYTE "Vector = ", 0
+
+    
+    empty BYTE "Stack is empty ", 0Ah, 0Dh, 0
+    notEmpty BYTE "Stack not empty", 0Ah, 0Dh, 0
+
+    space_text BYTE ", ", 0
+
+    Prompt_7 BYTE "Vector is ", 0
+    Prompt_8 BYTE "before ArrayToStack ", 0Ah, 0Dh, 0
+    Prompt_9 BYTE "Stack is ", 0
+    Prompt_10 BYTE "after ArrayToStack", 0Ah, 0Dh, 0
+
+    Prompt_11 BYTE "Vector is ", 0
+    Prompt_12 BYTE "before StackToArray ", 0Ah, 0Dh, 0
+    Prompt_13 BYTE "Stack is ", 0
+    Prompt_14 BYTE "after StackToArray", 0Ah, 0Dh, 0
+
+    Prompt_15 BYTE "Vector is ", 0
+    Prompt_16 BYTE "before StackReverse ", 0Ah, 0Dh, 0
+    Prompt_17 BYTE "Stack is ", 0
+    Prompt_18 BYTE "after StackReverse", 0Ah, 0Dh, 0
+
+    ExitPrompt BYTE "I am exiting... Thank you Honey... and Get lost...", 0Ah, 0Dh, 0
 
 .code
+
+StackEmpty PROC
+    mov EAX, ESP
+    ADD EAX, DWORD
+    CMP initialAddress, EAX
+    JE EmptyStack
+
+    NotEmptyStack:
+        mov EDX, OFFSET notEmpty
+        Call WriteString
+        jmp ExitingStackEmpty
+    EmptyStack:
+        mov EDX, OFFSET empty
+        Call WriteString
+    ExitingStackEmpty:
+    ret
+StackEmpty ENDP
+
+PrintVector PROC
+    ; Display the vector
+    movzx ECX, N ; Set the loop counter to the size of the vector
+    mov EDI, OFFSET UserVector ; Set EDI to point to the beginning of the vector
+
+    PrintVectorLoop:
+        ; Display the current element
+        mov EAX, [EDI]
+        Call WriteDec
+
+        ; Display space between elements
+        mov EDX, OFFSET space_text
+        Call WriteString
+
+        ; Move to the next element in the vector
+        add EDI, DWORD ; Assuming each element is a double-word (4 bytes)
+        
+        ; Decrement the loop counter
+        loop PrintVectorLoop
+
+    ret
+PrintVector ENDP
+
+PrintStack PROC
+    mov EDI, ESP
+    movzx ECX, N
+    IterateThroughStack:
+        ADD EDI, DWORD
+        mov EAX, [EDI]
+        Call WriteDec
+        mov EDX, OFFSET space_text
+        Call WriteString
+        loop IterateThroughStack
+    ret
+PrintStack ENDP
+
 main PROC
+    
+    mov initialAddress, ESP
+    mainLoop:
+        mov EDX, OFFSET promptFirst
+        Call WriteString
 
-; Get user input for operation
-mov eax, 0   ; for displaying menu
-call GetString
-mov eax, 4    ; for newline
-call WriteString
+        Call ReadInt
+        Call Crlf
 
-; Display menu
-mov eax, offset menu
-call WriteString
+        CMP EAX, -1
+        JE ExitVal
+        CMP EAX, 0
+        JE CreateVector
+        CMP EAX, 1
+        JE VectorToStack
+        CMP EAX, 2
+        JE StackToVector
+        CMP EAX, 3
+        JE StackReverse
 
-loop1:
-; Get user choice
-mov eax, 0
-call GetInt
 
-; Perform operation based on choice
-cmp eax, 1
-je ArrayToStack  ; Choice 1: ArrayToStack
-cmp eax, 2
-je StackToArray  ; Choice 2: StackToArray
-cmp eax, 3
-je StackReverse  ; Choice 3: StackReverse
-cmp eax, 0
-jne loop1        ; Loop until exit (choice 0)
+    ; Start of 0
+    CreateVector:
+        mov EDX, OFFSET prompt_two
+        Call WriteString
 
-; Exit program
-mov eax, 4
-call WriteString
-mov eax, 1
-call ExitProcess
+        Call ReadInt
+        mov N, AL
+        movzx ECX, N
 
-; --- Function implementations ---
+        Call Crlf
 
-ArrayToStack PROC
-; Push elements from Vector onto stack
-push ecx         ; Save register (optional)
+        mov EDX, OFFSET promptThird
+        Call WriteString
+        Call WriteDec
+        mov EDX, OFFSET promptFour
+        Call WriteString
+        Call Crlf
 
-mov ecx, 0
-loop2:
-    cmp ecx, N
-    jge done       ; Exit loop when reaching array size
+        mov EDI, OFFSET UserVector
+    VectorLoop:
+        Call ReadInt
+        mov [EDI], EAX
+        add EDI, DWORD
+        loop VectorLoop
+        mov EDX, OFFSET promptFifth
+        Call WriteString
+        movzx EAX, N
+        Call WriteDec
+        Call Crlf
+        movzx ECX, N
+        mov EDX, OFFSET promptSixth
+        Call WriteString
+        Call PrintVector
+        Call Crlf
+        Call StackEmpty
+        jmp mainLoop
+    ; End of 0
+    ; Start of 1
+    VectorToStack:
+        mov EDX, OFFSET Prompt_7
+        Call WriteString
+        Call PrintVector
+        mov EDX, OFFSET Prompt_8
+        Call WriteString
+        movzx ECX, N
+        mov EDI, OFFSET UserVector
+    VectorToStackLoop:
+        push [EDI]
+        mov EAX, 0
+        mov [EDI], EAX
+        add EDI, DWORD 
+        loop VectorToStackLoop
+        Call Crlf
+        mov EDX, OFFSET Prompt_9
+        Call WriteString
+        Call PrintStack
+        mov EDX, OFFSET Prompt_10
+        Call WriteString
+        Call Crlf
+        mov EDX, OFFSET Prompt_7
+        Call WriteString
+        Call PrintVector
+        mov EDX, OFFSET Prompt_10
+        Call WriteString
+        Call Crlf
+        Call StackEmpty
+        jmp mainLoop
+    ; End of 1
+    ; Start of 2
+    StackToVector:
+        mov EDX, OFFSET Prompt_13
+        Call WriteString
+        Call PrintStack
+        mov EDX, OFFSET Prompt_12
+        Call WriteString
+        mov EDI, OFFSET UserVector
+        movzx EAX, N
+        add EAX, EAX
+        add EAX, EAX
+        add EDI, EAX
+        sub EDI, DWORD
+        movzx ECX, N
+    StackToVectorLoop:
+        pop EAX
+        mov [EDI], EAX
+        sub EDI, DWORD
+        loop StackToVectorLoop
+        mov EDX, OFFSET Prompt_11
+        Call WriteString
+        Call PrintVector
+        mov EDX, OFFSET Prompt_14
+        Call WriteString
+        Call Crlf
+        Call StackEmpty
+        jmp mainLoop
+    ; End of 2
+    ; Start of 3
+    StackReverse:
+        mov EDX, OFFSET Prompt_15
+        Call WriteString
+        Call PrintVector
+        mov EDX, OFFSET Prompt_16
+        Call WriteString
 
-    mov eax, [Vector + ecx*4] ; Load element from array
-    push eax       ; Push element onto stack
+        mov esi, OFFSET UserVector
+        
+        movzx ecx, N
+        mov edi, OFFSET UserVector
+        add edi, ecx
+        add edi, ecx
+        add edi, ecx
+        sub edi, 4
+        
+        StackReverseLoop:
+            mov eax, [esi]
+            xchg eax, [edi]
+            mov [esi], eax
+            
+            add esi, 4
+            sub edi, 4
+            
+            cmp esi, edi
+            jae StackReverseExitLoop
+            
+            jmp StackReverseLoop
+        
+        StackReverseExitLoop:
+        mov EDX, OFFSET Prompt_17
+        Call WriteString
+        Call PrintStack
+        mov EDX, OFFSET Prompt_18
+        Call WriteString
+        Call Crlf
+        Call StackEmpty
+        jmp mainLoop
+    ; End of 3
+    ; Start of -1
+    ExitVal:
+        mov EDX, OFFSET ExitPrompt
+        Call WriteString
 
-    add ecx, 1
-    jmp loop2
-
-done:
-    pop ecx         ; Restore register (optional)
-    ret             ; Return from function
-
-ArrayToStack ENDP
-
-StackToArray PROC
-; Pop elements from stack back to Vector
-push ecx         ; Save register (optional)
-
-mov ecx, N-1
-loop3:
-    cmp ecx, -1
-    jl done2        ; Exit loop when stack is empty
-
-    pop eax          ; Pop element from stack
-    mov [Vector + ecx*4], eax ; Store element back to array
-
-    sub ecx, 1
-    jmp loop3
-
-done2:
-    pop ecx         ; Restore register (optional)
-    ret             ; Return from function
-
-StackToArray ENDP
-
-StackReverse PROC
-; Reverse elements in Vector using stack
-    push ecx         ; Save register (optional)
-
-    call ArrayToStack ; Push elements onto stack
-    call StackToArray  ; Pop elements back in reverse order
-
-    pop ecx         ; Restore register (optional)
-    ret             ; Return from function
-StackReverse ENDP
-
-; --- Data for menu ---
-
-menu db "What do you want to do now? (0 - Exit, 1 - ArrayToStack, 2 - StackToArray, 3 - StackReverse)", 10, 0
+    exit
 
 main ENDP
 END main
